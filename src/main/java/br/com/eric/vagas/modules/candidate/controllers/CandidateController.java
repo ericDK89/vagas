@@ -1,7 +1,9 @@
 package br.com.eric.vagas.modules.candidate.controllers;
 
-import br.com.eric.vagas.modules.candidate.CandidateEntity;
+import br.com.eric.vagas.modules.candidate.entities.CandidateEntity;
+import br.com.eric.vagas.modules.candidate.useCases.CreatedCandidateUseCase;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/candidate")
 public class CandidateController {
 
-    @PostMapping("/")
-    public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidate) {
-        System.out.println(candidate.getUsername() + "\n");
-        System.out.println(candidate.getEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).body("Success");
+  @Autowired private CreatedCandidateUseCase createdCandidateUseCase;
+
+  @PostMapping()
+  public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidate) {
+    try {
+      createdCandidateUseCase.execute(candidate);
+      return ResponseEntity.status(HttpStatus.CREATED).body("Success");
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      return ResponseEntity.badRequest().body("Error: " + e.getMessage());
     }
+  }
 }

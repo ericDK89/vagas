@@ -1,0 +1,19 @@
+services:
+
+  vagas_db:
+    container_name: vagas_postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: vagas_db
+
+    volumes:
+      - postgres_data:/vagas
+
+volumes:
+  postgres_data:
+
