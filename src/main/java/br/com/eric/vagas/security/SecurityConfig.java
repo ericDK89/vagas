@@ -1,8 +1,10 @@
 package br.com.eric.vagas.security;
 
+import br.com.eric.vagas.exceptions.CustomAccessDeniedHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,9 +13,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Autowired SecurityFilter securityFilter;
+  @Autowired SecurityCandidateFilter securityCandidateFilter;
+  @Autowired CustomAccessDeniedHandler customAccessDeniedHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -25,12 +30,14 @@ public class SecurityConfig {
                   .permitAll()
                   .requestMatchers("/company/")
                   .permitAll()
-                  .requestMatchers("/auth/company")
+                  .requestMatchers("/company/auth")
                   .permitAll()
-                  .requestMatchers("/auth/candidate")
+                  .requestMatchers("/candidate/auth")
                   .permitAll();
               auth.anyRequest().authenticated();
             })
+        .exceptionHandling(e -> e.accessDeniedHandler(customAccessDeniedHandler))
+        .addFilterBefore(securityCandidateFilter, BasicAuthenticationFilter.class)
         .addFilterBefore(securityFilter, BasicAuthenticationFilter.class);
 
     return http.build();

@@ -1,6 +1,7 @@
 package br.com.eric.vagas.security;
 
-import br.com.eric.vagas.providers.JWTProvider;
+import br.com.eric.vagas.providers.JWTCandidateProvider;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,31 +15,36 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-public class SecurityFilter extends OncePerRequestFilter {
-  @Autowired JWTProvider jwtProvider;
+public class SecurityCandidateFilter extends OncePerRequestFilter {
+
+  @Autowired JWTCandidateProvider jwtCandidateProvider;
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+
     //    SecurityContextHolder.getContext().setAuthentication(null);
 
     String header = request.getHeader("Authorization");
 
-    if (request.getRequestURI().startsWith("/company")) {
+    if (request.getRequestURI().startsWith("/candidate")) {
       if (header != null) {
-        var token = jwtProvider.validateToken(header);
+        DecodedJWT token = jwtCandidateProvider.validateCandidateToken(header);
 
         if (token == null) {
           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
           return;
         }
 
-        request.setAttribute("company_id", token.getSubject());
+        request.setAttribute("candidate_id", token.getSubject());
 
         var roles = token.getClaim("roles").asList(String.class);
+
         var grants =
-            roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
+            roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                .toList();
 
         var authenticationToken =
             new UsernamePasswordAuthenticationToken(token.getSubject(), null, grants);

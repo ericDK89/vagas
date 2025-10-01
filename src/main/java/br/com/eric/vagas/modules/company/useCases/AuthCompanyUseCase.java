@@ -1,6 +1,7 @@
 package br.com.eric.vagas.modules.company.useCases;
 
 import br.com.eric.vagas.modules.company.dto.AuthCompanyDTO;
+import br.com.eric.vagas.modules.company.dto.AuthCompanyResponseDTO;
 import br.com.eric.vagas.modules.company.entities.CompanyEntity;
 import br.com.eric.vagas.modules.company.repositories.CompanyRepository;
 import br.com.eric.vagas.providers.JWTProvider;
@@ -20,7 +21,8 @@ public class AuthCompanyUseCase {
 
   @Autowired JWTProvider jwtProvider;
 
-  public void execute(AuthCompanyDTO authCompanyDTO) throws AuthenticationException {
+  public AuthCompanyResponseDTO execute(AuthCompanyDTO authCompanyDTO)
+      throws AuthenticationException {
     CompanyEntity company =
         companyRepository
             .findByUsername(authCompanyDTO.username())
@@ -32,10 +34,11 @@ public class AuthCompanyUseCase {
     if (!passwordMatches) throw new AuthenticationException("Invalid password");
 
     try {
-      jwtProvider.createToken(company.getId().toString());
+      return jwtProvider.createToken(company.getId().toString());
 
     } catch (JWTCreationException e) {
       System.err.println(e.getMessage());
+      return null;
     }
   }
 }
